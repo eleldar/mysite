@@ -4,6 +4,15 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 
+
+class PublishedManager(models.Manager):
+    '''Собственный менеджер модели; альтернатива objects'''
+    def get_queryset(self):
+        '''Метод get_queryset() менеджера по умолчанию возвращает QuerySet, 
+        который будет выполняться; мы его переопределили и добавили фильтр над результирующим QuerySet’ом'''
+        return super().get_queryset().filter(status='published')
+
+
 class Post(models.Model):
     # для выбора определенного поля в качестве перичного ключа следует в его параметре указать primary_key=True; по умолчанию -  id
     STATUS_CHOICES = (
@@ -30,6 +39,8 @@ class Post(models.Model):
                                                         # Так как мы используем параметр auto_now, то дата будет сохраняться автоматически при сохранении объекта
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')   # статус статьи;
                                                                                         # параметр CHOICES используется, чтобы ограничить возможные значения из указанного списка
+    objects = models.Manager()      # Менеджер по умолчанию
+    published = PublishedManager()  # Собственный менеджер
 
     class Meta:                     # класс Meta внутри модели содержит метаданные
         ordering = ('-publish',)    # указали Django порядок сортировки статей (поле publish) по умолчанию – по убыванию даты публикации;
@@ -38,3 +49,5 @@ class Post(models.Model):
        # db_table - этот атрибут позволяет изменить название таблицы в БД
     def __str__(self):      # возвращаем строковое отображение объекта; использует его во многих случаях, например на сайте администрирования
         return self.title
+
+
