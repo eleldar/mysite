@@ -13,14 +13,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+
 from django.urls import path, include
+from django.contrib import admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('blog/', include('blog.urls', namespace='blog')), # с помощью include подключается конфигурация приложения блога. 
-                                                           # Все его адреса будут начинаться с blog/. 
-                                                           # Используемое пространство имен, blog, должно быть уникально по всему проекту;
-                                                           # это позволит обращаться к шаблонам приложения по пространству имен, 
-                                                           # например blog:post_list, blog:post_detail
-]
+    path('blog/', include('blog.urls', namespace='blog'))]

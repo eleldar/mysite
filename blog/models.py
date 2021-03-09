@@ -3,6 +3,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 
 class PublishedManager(models.Manager):
@@ -49,5 +50,13 @@ class Post(models.Model):
        # db_table - этот атрибут позволяет изменить название таблицы в БД
     def __str__(self):      # возвращаем строковое отображение объекта; использует его во многих случаях, например на сайте администрирования
         return self.title
+
+    def get_absolute_url(self):
+        '''используется URL post_detail для построения канонического URL’а для объектов Post. 
+        В Django есть соглашение о том, что метод модели get_absolute_url() должен возвращать 
+        канонический URL объекта (имя этого метода применяется в HTML-шаблоне, чтобы получать ссылку на статью)'''
+        # функцию reverse() дает возможность получать URL, указав имя URL-шаблона и его параметры (определены в urls.py)
+        return reverse('blog:post_detail', 
+                        args=[self.publish.year, self.publish.month, self.publish.day, self.slug])
 
 
