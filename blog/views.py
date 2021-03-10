@@ -1,20 +1,23 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Post
 '''вся логика приложения описывается здесь. 
 Каждый обработчик получает HTTP-запрос, обрабатывает его и возвращает ответ'''
+from django.shortcuts import render, get_object_or_404
+from .models import Post
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def post_list(request):
     '''запрашиваем из базы данных все опубликованные статьи
     с помощью собственного менеджера published'''
-    posts = Post.published.all()
-    return render(request, 'blog/post/list.html', {'posts': posts}) # функция render() формирует шаблон со списком статей.
-                                                                    # Она принимает 1. объект запроса request,
-                                                                    #               2. путь к шаблону
-                                                                    #               3. переменные контекста для этого шаблона.
-                                                                    # В ответ вернется объект HttpResponse со сформированным текстом (обычно это HTML-код).
-                                                                    # Функция render() использует переданный контекст при формировании шаблона,
-                                                                    # поэтому любая переменная контекста будет доступна в шаблоне.
-                                                                    # Процессоры контекста – это вызываемые функции, которые добавляют в контекст переменные.
+    object_list = Post.published.all()
+    paginator = Paginator(object_list, 3) # инициализируем объект класса Paginator, указав количество объектов на одной странице
+    page = request.GET.get('page') # извлекаем из запроса GET-параметр page, который указывает текущую страницу
+    try:
+        posts = paginator.page(page) # получаем список объектов на нужной странице с помощью метода page() класса Paginator
+    except PageNotAnInteger:
+        posts = paginator.page(1) # если указанный параметр page не является целым числом, обращаемся к первой странице
+    except EmptyPage:
+        posts = paginator.page(paginator.num_pages) # если page больше, чем общее количество страниц, то возвращаем последнюю
+    context = {'page': page, 'posts': posts} # передаем номер страницы и полученные объекты в шаблон
+    return render(request, 'blog/post/list.html', context=context) 
 
 def post_detail(request, year, month, day, post): 
     '''принимает аргументы для получения статьи по указанным слагу и дате,
