@@ -20,6 +20,7 @@ from django.shortcuts import render, get_object_or_404
 from .models import Post
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
+from .forms import EmailPostForm
 
 class PostListView(ListView):
     '''Заменили функцию post_list на класс-наследник ListView Django. 
@@ -55,3 +56,39 @@ def post_detail(request, year, month, day, post):
                              publish__month=month,
                              publish__day=day)
     return render(request, 'blog/post/detail.html', {'post': post})
+
+def post_share(request, post_id):
+    '''получение статьи по идентификатору'''
+    post = get_object_or_404(Post, id=post_id, status='published') # получения статьи с указанным идентификатором; убеждаемся, что статья опубликована; иначе - 404
+    '''Для разделения логики отображения формы или ее обработки используется запрос request. 
+       Заполненная форма отправляется методом POST. Если метод запроса – GET, необходимо отобразить 
+       пустую форму; если приходит запрос POST, обрабатываем данные формы и отправляем их на почту.'''
+    sent = False # объявили переменную sent, она будет установлена в True после отправки сообщения
+                 # Будем использовать эту переменную позже для отображения сообщения об успешной отправке в HTML-шаблоне.
+    if request.method == 'POST':
+        # отправка формы на сохранение
+        form = EmailPostForm(request.POST) # Cоздаем объект формы, используя полученые из request.POST данные
+        if form.is_valid(): # проверка введенных данных; возвращает True, если ошибок не найдено. 
+                            # если хотя бы одно поле содержит неверное значение, возвращается False.
+                            # Если форма некорректна, то возвращаем ее с введенными пользователем 
+                            # данными и сообщениями об ошибках (требуется позже добавить в HTML-шаблон).
+            cd = form.cleaned_data # получаем введенные данные с помощью form.cleaned_data. 
+                                   # Этот атрибут является словарем с полями формы и их значениями.
+                                   # Если форма не проходит валидацию, то в атрибут cleaned_data попадут только корректные поля.
+            #Отправка электронной почты
+            post_url = request.build_absolute_uri(post.get_absolute_url()) # используем метод объекта запроса request.build_absolute_uri(),
+                                                                           # чтобы добавить в сообщение абсолютную ссылку (Полученная абсолютная ссылка будет содержать HTTP-схему и имя хоста);
+                                                                           # в request.build_absolute_uri() передается результат выполнения get_absolute_url()
+            subject = f"{cd['name']} ({cd['email']}) рекомендует Вам почитать {post.title}"              # тема сообщения
+            message = f"Читайте {post.title} в {post.url}\n\n{cd['name']} комментарии: {cd['comments']}" # текст сообщения
+            send_mail(subject, message, 'admin', [cd['to']]) # Функция send_mail() принимает в качестве обязательных аргументов тему, сообщение, отправителя и список получателей. 
+                                                             # Указав дополнительный параметр fail_silently=False, мы говорим, чтобы при сбое в отправке сообщения было сгенерировано исключение. 
+                                                             # Если в результате выполнения вы увидите 1, ваше письмо успешно отправлено.
+                                                             # В данном случае отправили e-mail по адресам, указанным в поле to формы.
+            sent = True
+    else:
+        form = EmailPostForm() # Когда обработчик выполняется первый раз с GET-запросом, 
+                               # создается объект form, который будет отображен в шаблоне как пустая форма;
+                               # Пользователь заполняет форму и отправляет POST-запросом.
+        context = {'post': post, 'form': form, 'sent': sent}
+        return render(request, 'blog/post/share.html', context=context)
