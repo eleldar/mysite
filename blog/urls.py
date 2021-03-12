@@ -21,8 +21,11 @@ app_name = 'blog' # определили пространство имен пр�
                   # это позволяет сгруппировать адреса для приложения блога и 
                   # использовать их названия для доступа к ним
 
-urlpatterns = [path('', views.post_list, name='post_list'),
-              path('<int:year>/<int:month>/<int:day>/<slug:post>/', views.post_detail, name='post_detail')]
+urlpatterns = [
+    #path('', views.post_list, name='post_list'),
+    path('', views.PostListView.as_view(), name='post_list'),
+    path('<int:year>/<int:month>/<int:day>/<slug:post>/', views.post_detail, name='post_detail')
+]
 
 # Примечание
 # Если использование path() и конвертеров не подходит, можно задействовать re_path(). 
