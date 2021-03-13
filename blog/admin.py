@@ -2,7 +2,7 @@ from django.contrib import admin
 '''здесь мы регистрируем модели для добавления их в систему
 администрирования Django (использование сайта администрирования
 Django не является обязательным!)'''
-from .models import Post
+from .models import Post, Comment
 
 # admin.site.register(Post) # обычная регистрация модели
 
@@ -20,3 +20,10 @@ class PostAdmin(admin.ModelAdmin): # создали пользовательск
                                 # выбор автора из выпадающего списка
     date_hierarchy = 'publish'
     ordering = ('status', 'publish')
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'email', 'post', 'created', 'active')
+    list_filter = ('active', 'created', 'updated')
+    search_fields = ('name', 'email', 'body')

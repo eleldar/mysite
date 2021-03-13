@@ -21,6 +21,7 @@ from .models import Post
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 from .forms import EmailPostForm
+from django.core.mail import send_mail
 
 class PostListView(ListView):
     '''Заменили функцию post_list на класс-наследник ListView Django. 
@@ -79,8 +80,8 @@ def post_share(request, post_id):
             post_url = request.build_absolute_uri(post.get_absolute_url()) # используем метод объекта запроса request.build_absolute_uri(),
                                                                            # чтобы добавить в сообщение абсолютную ссылку (Полученная абсолютная ссылка будет содержать HTTP-схему и имя хоста);
                                                                            # в request.build_absolute_uri() передается результат выполнения get_absolute_url()
-            subject = f"{cd['name']} ({cd['email']}) рекомендует Вам почитать {post.title}"              # тема сообщения
-            message = f"Читайте {post.title} в {post.url}\n\n{cd['name']} комментарии: {cd['comments']}" # текст сообщения
+            subject = f"{cd['name']} ({cd['email']}) рекомендует Вам прочитать статью {post.title}"              # тема сообщения
+            message = f"Для чтения статьи: {post.title} \n\nперейдите по ссылке: {post_url}\n\nкомментарий {cd['name']}: {cd['comments']}" # текст сообщения
             send_mail(subject, message, 'admin', [cd['to']]) # Функция send_mail() принимает в качестве обязательных аргументов тему, сообщение, отправителя и список получателей. 
                                                              # Указав дополнительный параметр fail_silently=False, мы говорим, чтобы при сбое в отправке сообщения было сгенерировано исключение. 
                                                              # Если в результате выполнения вы увидите 1, ваше письмо успешно отправлено.
@@ -90,5 +91,5 @@ def post_share(request, post_id):
         form = EmailPostForm() # Когда обработчик выполняется первый раз с GET-запросом, 
                                # создается объект form, который будет отображен в шаблоне как пустая форма;
                                # Пользователь заполняет форму и отправляет POST-запросом.
-        context = {'post': post, 'form': form, 'sent': sent}
-        return render(request, 'blog/post/share.html', context=context)
+    context = {'post': post, 'form': form, 'sent': sent}
+    return render(request, 'blog/post/share.html', context=context)

@@ -60,3 +60,27 @@ class Post(models.Model):
                         args=[self.publish.year, self.publish.month, self.publish.day, self.slug])
 
 
+class Comment(models.Model):
+    '''Модель Comment содержит ForeignKey для привязки к определенной статье.
+    Это отношение определено как «один ко многим»: одна статья может иметь множество комментариев,
+    но каждый комментарий может быть оставлен только для одной статьи'''
+    post = models.ForeignKey(Post,  
+                             on_delete=models.CASCADE, 
+                             related_name='comments' # Атрибут related_name позволяет получить доступ к комментариям конкретной статьи. 
+                                                     # Теперь можно обращаться к статье из комментария, используя запись comment.post, 
+                                                     # и к комментариям статьи при помощи post.comments.all(). 
+                                                     # Если не опрелять related_name, то используется имя связанной модели с постфиксом _set 
+                                                     # (например, comment_set)
+    )
+    name = models.CharField(max_length=80)
+    email = models.EmailField()
+    body = models.TextField()
+    created = models.DateTimeField(auto_now_add=True) # поле created для сортировки комментариев в хронологическом порядке
+    updated = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True) # булевое поле active, для того чтобы была возможность скрыть некоторые комментарии (например, содержащие оскорбления)
+
+    class Meta:
+        ordering = ('created',)
+
+    def __str__(self):
+        return f'Комментарий {self.name} на статью {self.post}'
