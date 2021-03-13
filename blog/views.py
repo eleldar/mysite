@@ -17,10 +17,10 @@
 ми, или миксинами).
 '''
 from django.shortcuts import render, get_object_or_404
-from .models import Post
+from .models import Post, Comment
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
-from .forms import EmailPostForm
+from .forms import EmailPostForm, CommentForm
 from django.core.mail import send_mail
 
 class PostListView(ListView):
@@ -56,7 +56,30 @@ def post_detail(request, year, month, day, post):
                              publish__year=year,
                              publish__month=month,
                              publish__day=day)
-    return render(request, 'blog/post/detail.html', {'post': post})
+    # Список активных комментариев для этой статьи
+    comments = post.comments.filter(active=True) # добавили QuerySet для получения всех активных комментариев,
+                                                 # используя объект статьи post и менеджер связанных объектов comments, 
+                                                 # определенный в модели Comment в аргументе related_name.
+    new_comment = None # используется, когда новый комментарий будет успешно создан
+    if request.method == 'POST':
+        # Пользователь отправил комментарий
+        comment_form = CommentForm(data=request.POST) # Если получаем POST-запрос, то заполняем форму данными из запроса
+        if comment_form.is_valid(): # валидируем POST-запрос методом is_valid(); при некорректном заполнении
+                                    # отображаем HTML-шаблон с сообщениями об ошибках
+            # Создаем комментарий, но пока не сохраняем в базе данных
+            new_comment = comment_form.save(commit=False) # создаем новый объект Comment с помощью метода save;
+                                                          # save() создает объект модели, с которой связана форма, и сохраняет его в базу данных. 
+                                                          # Если в качестве аргумента метода передать commit=False, то объект будет создан, 
+                                                          # но не будет сохранен в базу данных, чтобы изменить данные перед сохранением объекта  
+                                                          # Метод save() доступен для ModelForm, но не дляForm, т.к. последние не привязываются к моделям
+            # Привязываем статью к комментарию
+            new_comment.post = post # указываем в комментарии ссылку на объект статьи
+            # Сохраняем комментарий в базе данных
+            new_comment.save() # сохраняем комментарий в базу данных
+    else:
+        comment_form = CommentForm() # используем для инициализации формы при GET-запросе
+    context = {'post': post, 'comments': comments, 'new_comment': new_comment, 'comment_form': comment_form}
+    return render(request, 'blog/post/detail.html', context=context)
 
 def post_share(request, post_id):
     '''получение статьи по идентификатору'''

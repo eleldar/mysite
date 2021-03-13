@@ -6,6 +6,7 @@
 но есть общее соглашение, чтобы они находились в файле forms.py каждого приложения
 '''
 from django import forms
+from .models import Comment
 
 class EmailPostForm(forms.Form):
     '''каждый тип по умолчанию имеет виджет для отображения в HTML. Виджет может быть изменен с помощью параметра widget.
@@ -16,3 +17,11 @@ class EmailPostForm(forms.Form):
     comments = forms.CharField(required=False, widget=forms.Textarea) # required=False делает поле необязательным;
                                                                       # используем виджет Textarea для отображения HTML-элемента <text area> вместо стандартного <input>
 
+class CommentForm(forms.ModelForm):
+    '''для создания формы из модели нужно указать какую модель использовать в опциях класса Meta. 
+       Каждое поле модели будет сопоставлено полю формы соответствующего типа. 
+       По умолчанию Django использует все поля модели;
+       для явного указания включаемых полей используется атрибут fields, а exclude - для исключаемых.'''
+    class Meta:
+        model = Comment
+        fields = ('name', 'email', 'body')
