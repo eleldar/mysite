@@ -23,6 +23,14 @@ from django.views.generic import ListView
 from .forms import EmailPostForm, CommentForm
 from django.core.mail import send_mail
 from taggit.models import Tag
+from django.db.models import Count # функция агрегации Count из Django;
+                                   # позволяет выполнять агрегирующий запрос
+                                   # для подсчета количества тегов на уровне
+                                   # базы данных. Cодержит еще функции:
+                                   #  Avg – среднее значение;
+                                   #  Max – максимальное значение;
+                                   #  Min – минимальное значение;
+                                   #  Count – количество объектов.
 
 
 def post_list(request, tag_slug=None): # Принимаем необязательный аргумент tag_slug, который по умолчанию равен None.
@@ -86,7 +94,19 @@ def post_detail(request, year, month, day, post):
             new_comment.save() # сохраняем комментарий в базу данных
     else:
         comment_form = CommentForm() # используем для инициализации формы при GET-запросе
-    context = {'post': post, 'comments': comments, 'new_comment': new_comment, 'comment_form': comment_form}
+    # Формирование списка похожих статей
+    post_tags_ids = post.tags.values_list('id', flat=True) # получает все ID тегов текущей статьи;
+                                                           # Метод QuerySet’а values_list() возвращает кортежи со значениями заданного поля. 
+                                                           # Мы указали flat=True, чтобы получить «плоский» список вида [1, 2, 3, ...]
+    similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id) # получает все статьи, содержащие хоть один тег из полученных ранее, исключая текущую статью;
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4] # использует функцию агрегации Count 
+                                                           # для формирования вычисляемого поля same_tags, 
+                                                           # которое содержит определенное количество совпадающих тегов;
+                                                           # сортирует список опубликованных статей в убывающем порядке по количеству 
+                                                           # совпадающих тегов для отображения первыми максимально похожих статей и 
+                                                           # делает срез результата для отображения только четырех статей.
+    context = {'post': post, 'comments': comments, 'new_comment': new_comment,
+               'comment_form': comment_form, 'similar_posts': similar_posts}
     return render(request, 'blog/post/detail.html', context=context)
 
 def post_share(request, post_id):

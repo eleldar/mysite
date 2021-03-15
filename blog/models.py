@@ -43,7 +43,7 @@ class Post(models.Model):
                                                                                         # параметр CHOICES используется, чтобы ограничить возможные значения из указанного списка
     objects = models.Manager()      # Менеджер по умолчанию
     published = PublishedManager()  # Собственный менеджер
-    tags = TaggableManager()        # менеджер из класса TaggableManager; 
+    tags = TaggableManager()        # менеджер тегов из класса TaggableManager; 
                                     # позволит добавлять, получать список и удалять теги для объектов статей
 
     class Meta:                     # класс Meta внутри модели содержит метаданные

@@ -16,9 +16,7 @@
           <a href="{% url "blog:post_list_by_tag" tag.slug %}">  {# Для формирования URL’а используется запись             #}
                                                                  {# {% url "blog:post_list_by_tag" tag.slug %} с указанием #}
                                                                  {# имени URL-шаблона и передачей слага тега как дополнительного параметра#}
-          {{ tag.name }}
-          </a>
-          {% if not forloop.last %}, {% endif %}
+          {{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
         {% endfor %}
     </p>
     <p class="date">Опубликовано {{post.publish}}, автор: {{post.author}}</p>
