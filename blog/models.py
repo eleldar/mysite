@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.urls import reverse
+from taggit.managers import TaggableManager
 
 
 class PublishedManager(models.Manager):
@@ -42,6 +43,8 @@ class Post(models.Model):
                                                                                         # параметр CHOICES используется, чтобы ограничить возможные значения из указанного списка
     objects = models.Manager()      # Менеджер по умолчанию
     published = PublishedManager()  # Собственный менеджер
+    tags = TaggableManager()        # менеджер из класса TaggableManager; 
+                                    # позволит добавлять, получать список и удалять теги для объектов статей
 
     class Meta:                     # класс Meta внутри модели содержит метаданные
         ordering = ('-publish',)    # указали Django порядок сортировки статей (поле publish) по умолчанию – по убыванию даты публикации;

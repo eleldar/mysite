@@ -22,27 +22,35 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 from .forms import EmailPostForm, CommentForm
 from django.core.mail import send_mail
+from taggit.models import Tag
 
-class PostListView(ListView):
-    '''Заменили функцию post_list на класс-наследник ListView Django. 
-    Этот базовый класс обработчика списков позволяет отображать несколько объектов любого типа.'''
-    queryset = Post.published.all() # используем переопределенный QuerySet модели вместо
-                                    # получения всех объектов.
-                                    # Вместо задания атрибута QuerySet мы могли бы указать
-                                    # модель model=Post, и тогда Django, используя 
-                                    # стандартный менеджер модели, получал бы объекты как 
-                                    # Post.objects.all()
-    context_object_name = 'posts'   # используем posts в качестве переменной контекста 
-                                    # HTML-шаблона, в которой будет храниться список объектов. 
-                                    # Если не указать атрибут context_object_name, то
-                                    # по умолчанию будет использоваться переменная object_list,
-                                    # т.е. ей нужно будет передавать данные для отображения
-                                    # на HTML-странице
-    paginate_by = 3 # используем постраничное отображение по три объекта на странице
-    template_name = 'blog/post/list.html' # используем указанный шаблон для формирования 
-                                          # страницы; если не указать template_name, 
-                                          # то базовый класс ListView искал бы
-                                          # шаблон blog/post_list.html
+
+def post_list(request, tag_slug=None): # Принимаем необязательный аргумент tag_slug, который по умолчанию равен None.
+                                       # Этот параметр будет задаваться в URL’е
+    object_list = Post.published.all() # используем переопределенный QuerySet модели вместо получения всех объектов;
+                                       # находим все опубликованные статьи
+    tag = None
+
+    if tag_slug: # если указан слаг тега, получаем соответствующий объект модели Tag с помощью метода get_object_or_404()
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        object_list = object_list.filter(tags__in=[tag]) # фильтруем изначальный список статей и оставляем только те,
+                                                         # которые связаны с полученным тегом.
+                                                         # Так как это связь «многие ко многим», необходимо фильтровать статьи
+                                                         # по вхождению тегов в список тегов
+
+    paginator = Paginator(object_list, 3) # по 3 статьи на странице
+    page = request.GET.get('page')
+
+    try:
+        posts = paginator.page(page)
+    except PageNotAnInteger: # Страница не является целым числом; присвиваем 1
+        posts = paginator.page(1)
+    except EmptyPage: # Выход за пределы интервала; присвиваем последнюю страницу
+        posts = paginator.page(paginator.num_pages)
+
+    context = {'page': page, 'posts': posts, 'tag': tag}
+    return render (request, 'blog/post/list.html', context=context)
+
 
 def post_detail(request, year, month, day, post): 
     '''принимает аргументы для получения статьи по указанным слагу и дате,

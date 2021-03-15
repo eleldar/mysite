@@ -3,12 +3,26 @@
 {% block title %}Мой блог{% endblock %}
 {% block content %}
   <h1>Мой блог</h1>
+  {% if tag %}
+    <h2>Статьи с тегом "{{tag.name}}"</h2>
+  {% endif %}
   {% for post in posts %}
     <h2>
       <a href="{{post.get_absolute_url}}">{{post.title}}</a>
     </h2>
+    <p class="tags">
+      Теги:
+        {% for tag in post.tags.all %}                           {# проходим по всем тегам статьи и отображаем ссылку      #}
+          <a href="{% url "blog:post_list_by_tag" tag.slug %}">  {# Для формирования URL’а используется запись             #}
+                                                                 {# {% url "blog:post_list_by_tag" tag.slug %} с указанием #}
+                                                                 {# имени URL-шаблона и передачей слага тега как дополнительного параметра#}
+          {{ tag.name }}
+          </a>
+          {% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </p>
     <p class="date">Опубликовано {{post.publish}}, автор: {{post.author}}</p>
     {{post.body|truncatewords:30|linebreaks}}
   {% endfor %}
-  {% include "pagination.html" with page=page_obj %}
+  {% include "pagination.html" with page=posts %}
 {% endblock %}
