@@ -1,5 +1,6 @@
 from django.urls import path, re_path
 from . import views
+from .feeds import LatestPostsFeed
 '''
     Шаблоны URL’ов позволяют сопоставить адреса с обработчиками.
 Шаблон представляет собой комбинацию:
@@ -29,6 +30,7 @@ urlpatterns = [
                                                                             # только прописные буквы, числа, нижние подчеркивания и дефисы)
     path('<int:year>/<int:month>/<int:day>/<slug:post>/', views.post_detail, name='post_detail'),
     path('<int:post_id>/share', views.post_share, name='post_share'),
+    path('feed/', LatestPostsFeed(), name='post_feed'),
 ]
 
 # Примечание
