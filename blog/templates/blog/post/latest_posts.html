@@ -1,0 +1,7 @@
+<ul>
+  {% for post in latest_posts %} {# отображаем ненумерованный список статей, используя          #}
+                                 {# переменную контекста latest_posts, которую получаем из тега #}
+    <li><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></li>
+  {% endfor %}
+</ul>
+

@@ -1,3 +1,4 @@
+{% load blog_tags %}
 {% load static %}
 
 <!DOCTYPE html>
@@ -11,8 +12,21 @@
     {% block content %}{% endblock %}
   </div>
   <div id="sidebar">
-    <h2>My blog</h2>
-    <p>This is my blog</p>
+    <h2>Мой блог</h2>
+    <p>Это мой блог. У меня опубликовано {% total_posts %} статей</p>
+    
+    <h3>Последние статьи</h3>
+    {% show_latest_posts 3 %} {# вызывается шаблонный тег, в него передается аргумент count, #}
+                              {# указывающий на количество статей                            #}
+    <h3>Наиболее комментируемые статьи</h3>
+    {% get_most_commented_posts 3 as most_commented_posts %} {# результат записали в переменную с помощью as,           #}
+                                                             {# чтобы получать доступ в шаблоне без повтороного запроса #}
+                                                             {# указали ограничение статей для вывода 3 #}
+    <ul>
+      {% for post in most_commented_posts %}
+        <li><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></li>
+      {% endfor %}
+    </ul>
   </div>
 </body>
 </html>
