@@ -1,4 +1,5 @@
 {% extends "blog/base.html" %}
+{% load blog_tags %}
 
 {% block title %}Мой блог{% endblock %}
 {% block content %}
@@ -20,7 +21,7 @@
         {% endfor %}
     </p>
     <p class="date">Опубликовано {{post.publish}}, автор: {{post.author}}</p>
-    {{post.body|truncatewords:30|linebreaks}}
+    {{post.body|markdown|truncatewords_html:30}} {# Фильтр truncatewords_html обрезает строку после указанного количества слов, не считая незакрытые HTML-теги. #}
   {% endfor %}
   {% include "pagination.html" with page=posts %}
 {% endblock %}

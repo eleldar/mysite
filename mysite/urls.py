@@ -16,7 +16,14 @@ Including another URLconf
 
 from django.urls import path, include
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap # подключили необходимые модули
+from blog.sitemaps import PostSitemap             # для карты сайта
+
+sitemaps = {'posts': PostSitemap,}                # определили словарь карт сайта
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('blog/', include('blog.urls', namespace='blog'))]
+    path('blog/', include('blog.urls', namespace='blog')),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, # шаблон URL’а, который соответствует адресуsitemap.xml и обработчику sitemap
+         name='django.contrib.sitemaps.views.sitemap')
+]

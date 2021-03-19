@@ -1,4 +1,5 @@
 {% extends "blog/base.html" %}
+{% load blog_tags %}
 {% block title %}{{post.title}}{% endblock %}
 {% block content %}
   <h1>{{post.title}}</h1>
@@ -13,7 +14,7 @@
     </p>  
 
   
-  {{post.body|linebreaks}}
+  {{post.body|markdown}}
   <p>
     <a href="{% url 'blog:post_share' post.id %}">Поделиться этой статьей</a> {# шаблонный тег url используется для динамического формирования ссылок; #}
                                                                               {# задавая пространство имен blog и URL с названием post_share и добавляя в качестве параметра ID статьи #}
