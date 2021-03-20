@@ -158,11 +158,15 @@ def post_search(request):
         form = SearchForm(request.GET) # Когда запрос отправлен, мы инициализируем объект формы с параметрами из request.GET, 
         if form.is_valid(): # проверяем корректность введенных данных
             query = form.cleaned_data['query']
-            search_vector = SearchVector('title', 'body')  # формируем запрос на поиск статей с использованием объекта SearchVector по двум полям: title и body
-            search_query = SearchQuery(query) # создаем объект SearchQuery, далее фильтруем с его помощью результаты
+            search_vector = SearchVector('title', weight='A') + SearchVector('body', weight='B') # формируем запрос c разным весом для полей: title и body;
+                                                                                                 # По умолчанию используются веса D, C, B и A, которые соответствуют числам 0.1, 0.2, 0.4 и 1. 
+                                                                                                 # для вектора по полю title применили вес 1.0, для вектора по полю body - 0.4.
+            search_query = SearchQuery(query)
             results = Post.objects.annotate(
                 search=search_vector,
                 rank=SearchRank(search_vector, search_query)
-            ).filter(search=search_query).order_by('-rank')  # используем SearchRank для ранжирования статей
+            ).filter(rank__gte=0.3).order_by('-rank')  # отбрасываем статьи с низким рангом и
+                                                       # показываем только те, чей ранг выше 0.3.
+
     context = {'form': form, 'query': query, 'results': results}
     return render(request, 'blog/post/search.html', context=context)
