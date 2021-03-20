@@ -35,6 +35,10 @@ from django.contrib.postgres.search import SearchVector # класс для по
 from django.contrib.postgres.search import SearchQuery, SearchRank # Класс SearchQuery предназначен для преобразования фраз в объект поискового запроса;
                                                                    # по умолчанию все фразы пропускаются через алгоритм стемминга, который помогает получить больше совпадений.
                                                                    # Класс SearchRank сортирует результаты на основе того, как часто встречаются фразы поиска и как близко друг к другу они находятся
+from django.contrib.postgres.search import TrigramSimilarity # для поиска текста по сходству триграмм;
+                                                             # Чтобы использовать триграммы в PostgerSQL, необходимо подключить расширение pg_trgm;
+                                                             # Требовалось выполнить команду для входа в консоль PostgreSQL: "psql blog";
+                                                             # затем установить расширение pg_trgm, выполнив следующую команду: "CREATE EXTENSION pg_trgm;"
 
 def post_list(request, tag_slug=None): # Принимаем необязательный аргумент tag_slug, который по умолчанию равен None.
                                        # Этот параметр будет задаваться в URL’е
@@ -162,11 +166,8 @@ def post_search(request):
                                                                                                  # По умолчанию используются веса D, C, B и A, которые соответствуют числам 0.1, 0.2, 0.4 и 1. 
                                                                                                  # для вектора по полю title применили вес 1.0, для вектора по полю body - 0.4.
             search_query = SearchQuery(query)
-            results = Post.objects.annotate(
-                search=search_vector,
-                rank=SearchRank(search_vector, search_query)
-            ).filter(rank__gte=0.3).order_by('-rank')  # отбрасываем статьи с низким рангом и
-                                                       # показываем только те, чей ранг выше 0.3.
+            results = Post.objects.annotate(similarity=TrigramSimilarity('title', query)).filter(similarity__gt=0.3).order_by('-similarity')
 
     context = {'form': form, 'query': query, 'results': results}
     return render(request, 'blog/post/search.html', context=context)
+
