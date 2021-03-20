@@ -20,7 +20,7 @@ from django.shortcuts import render, get_object_or_404
 from .models import Post, Comment
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
-from .forms import EmailPostForm, CommentForm
+from .forms import EmailPostForm, CommentForm, SearchForm
 from django.core.mail import send_mail
 from taggit.models import Tag
 from django.db.models import Count # функция агрегации Count из Django;
@@ -31,6 +31,7 @@ from django.db.models import Count # функция агрегации Count и�
                                    #  Max – максимальное значение;
                                    #  Min – минимальное значение;
                                    #  Count – количество объектов.
+from django.contrib.postgres.search import SearchVector # класс для полнотекстового поиска по нескольким полям
 
 
 def post_list(request, tag_slug=None): # Принимаем необязательный аргумент tag_slug, который по умолчанию равен None.
@@ -144,3 +145,18 @@ def post_share(request, post_id):
                                # Пользователь заполняет форму и отправляет POST-запросом.
     context = {'post': post, 'form': form, 'sent': sent}
     return render(request, 'blog/post/share.html', context=context)
+
+
+def post_search(request):
+    form = SearchForm() # создаем объект формы SearchForm
+    query = None
+    results = []
+    if 'query' in request.GET: # Поисковый запрос будет отправляться методом GET, чтобы результирующий URL содержал в себе фразу поиска в параметре query.
+                               # Для того чтобы определить, отправлена ли форма для поиска, обращаемся к параметру запроса query из словаря request.GET
+        form = SearchForm(request.GET) # Когда запрос отправлен, мы инициализируем объект формы с параметрами из request.GET, 
+        if form.is_valid(): # проверяем корректность введенных данных
+            query = form.cleaned_data['query']
+            results = Post.objects.annotate(search=SearchVector('title', 'body'), # формируем запрос на поиск статей с использованием объекта SearchVector по двум полям: title и body
+                                        ).filter(search=query)
+    context = {'form': form, 'query': query, 'results': results}
+    return render(request, 'blog/post/search.html', context=context)

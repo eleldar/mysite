@@ -56,6 +56,9 @@ INSTALLED_APPS = [  # список активных приложений на с
     'django.contrib.sites', # При синхронизации приложения sites с базой данных был создан объект по умолчанию с адресом example.com
     'django.contrib.sitemaps',
 
+    # База данных PostgreSQL
+    'django.contrib.postgres',
+
     # Приложения по умолчанию
     'django.contrib.admin',         # сайт администрирования
     'django.contrib.auth',          # подсистема аутентификации
@@ -102,12 +105,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+DATABASES = local_settings.DATABASES
 
 
 # Password validation

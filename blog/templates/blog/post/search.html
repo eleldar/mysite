@@ -1,0 +1,29 @@
+{% extends "blog/base.html" %}
+
+{% block title  %}Поиск{% endblock %}
+
+{% block content %}
+
+  {% if query %}            {# при наличии данных в query показываем результат – количество найденных статей и фразу, по которой осуществлялся поиск #}
+    <h1>Статьи, содержащие "{{ query }}"</h1>
+    <h3>
+      {% with results.count as total_results %}
+        Найдено {{ total_results }} результатов {{ total_results|pluralize }}
+      {% endwith %}
+    </h3>
+    {% for post in results %}
+      <h4><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h4>
+      {{ post.body|truncatewords:5 }}
+    {% empty %}
+      <p>По Вашему запросу ничего не найдено</p>
+    {% endfor %}
+    <p><a href="{% url "blog:post_search" %}">Новый поиск</a></p>
+
+  {% else %}                {# отображение формы и кнопки поиска перед ее отправкой #}
+    <h1>Поиск статей</h1>
+    <form action="." method="get">
+      {{ form.as_p }}
+      <input type="submit" value="Поиск">
+    </form>
+  {% endif %}
+{% endblock %}
