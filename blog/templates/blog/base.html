@@ -12,8 +12,9 @@
     {% block content %}{% endblock %}
   </div>
   <div id="sidebar">
-    <h2>Мой блог</h2>
+    <h2><a href="{% url "blog:post_list" %}">Мой блог</a></h2>
     <p>Это мой блог. У меня опубликовано {% total_posts %} статей</p>
+    <p><a href="{% url "blog:post_search" %}">Поиск статей по заголовку</a></p>
     
     <p><a href="{% url "blog:post_feed" %}">Подписка на мой RSS канал</a> </p>
     

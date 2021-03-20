@@ -3,7 +3,7 @@
 
 {% block title %}Мой блог{% endblock %}
 {% block content %}
-  <h1>Мой блог</h1>
+  <h1><a href="{% url "blog:post_list" %}">Мой блог</a></h1>
   {% if tag %}
     <h2>Статьи с тегом "{{tag.name}}"</h2>
   {% endif %}
